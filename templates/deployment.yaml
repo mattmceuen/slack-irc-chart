@@ -9,6 +9,10 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
   replicas: {{ .Values.replicaCount }}
+  strategy:
+    # Note: you can only have one bot logged into an IRC account at a time,
+    # so Recreate blows away the old pod before spinning up the new one.
+    type: Recreate
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ include "slack-irc-chart.name" . }}
@@ -18,6 +22,8 @@ spec:
       labels:
         app.kubernetes.io/name: {{ include "slack-irc-chart.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
     spec:
       containers:
         - name: {{ .Chart.Name }}
@@ -29,6 +35,11 @@ spec:
             - name: config
               mountPath: /config/
               readOnly: true
+      {{- if .Values.debug }}
+          env:
+            - name: NODE_ENV
+              value: "development"
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

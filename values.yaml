@@ -1,3 +1,4 @@
+# This should probably always be 1 for this bot.
 replicaCount: 1
 
 image:
@@ -26,6 +27,12 @@ tolerations: []
 
 affinity: {}
 
+# Set to true for debug logging (per-message)
+debug: false
+
+# Note: the AUTH command results in an error message in the logs, but strangely
+# upgraded pods don't seem to be able to connect/authenticate successfully
+# with out it.  Maybe it's masking a race, or maybe I'm not understanding the error.
 conf: |
   [
       {
@@ -35,6 +42,7 @@ conf: |
           "autoSendCommands": [
               ["MODE", "friendlybot", "+x"],
               ["NICK", "friendlybot"],
+              ["AUTH", "MY-BOT-PASSWORD"],
               ["PRIVMSG", "NickServ", "IDENTIFY MY-BOT-PASSWORD"],
               ["JOIN", "#myircchannel"]
           ],
